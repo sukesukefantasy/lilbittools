@@ -1,8 +1,10 @@
 ﻿{
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"compatibility_date": "2026-07-08",
-	"compatibility_flags": ["global_fetch_strictly_public"],
-	"name": "park-garage-ota",
+	"compatibility_flags": [
+		"global_fetch_strictly_public"
+	],
+	"name": "lilbittools",
 	"main": "@astrojs/cloudflare/entrypoints/server",
 	"assets": {
 		"directory": "./dist",
@@ -11,6 +13,4 @@
 	"observability": {
 		"enabled": true
 	}
-	// 機密情報（BASIC_AUTH_USER, BASIC_AUTH_PASS, MICROCMS_API_KEY 等）は
-	// Cloudflare Pages ダッシュボード > Settings > Environment variables で設定
 }
