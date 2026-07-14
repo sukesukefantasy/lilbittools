@@ -1,4 +1,4 @@
-﻿# Cloudflare Pages セキュリティヘッダー
+# Cloudflare Pages セキュリティヘッダー
 # 公開準備ができたら X-Robots-Tag の行を削除する
 /*
   X-Robots-Tag: noindex, nofollow
