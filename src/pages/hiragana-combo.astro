@@ -1,0 +1,209 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="文字コンボ"
+  description="長さと数を自由に選べるひらがなの箱を並べて、思いがけない言葉が生まれるか試すコンボツール。"
+>
+  <section class="container" style="padding:3rem 1.5rem 4rem; max-width:900px; margin:0 auto;">
+    <p class="section-subtitle" style="text-align:center;">HIRAGANA COMBO</p>
+    <h1 class="section-title" style="text-align:center; margin-bottom:0.75rem;">
+      文字コンボ
+    </h1>
+    <p style="text-align:center; color:#9ca3af; font-size:0.95rem; line-height:1.7; margin-bottom:2rem;">
+      箱の数（1〜6個）と、各箱の文字数（1〜4文字）を自由に組み合わせて、<br />
+      箱をつなげたときに何か言葉が生まれるか試してみよう。
+    </p>
+
+    <!-- 箱の数セレクター -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:0.75rem; margin-bottom:2.5rem;">
+      <span style="color:#9ca3af; font-size:0.85rem; font-weight:700;">箱の数</span>
+      <button id="decrease-box-btn" type="button" class="icon-btn">−</button>
+      <span id="box-count-display" style="min-width:2rem; text-align:center; font-weight:900; font-size:1.1rem;"></span>
+      <button id="increase-box-btn" type="button" class="icon-btn">＋</button>
+    </div>
+
+    <!-- 箱一覧 -->
+    <div
+      id="boxes-container"
+      style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center; margin-bottom:2.5rem;"
+    >
+    </div>
+
+    <!-- 連結結果 -->
+    <p class="section-subtitle" style="text-align:center; margin-bottom:0.75rem;">RESULT</p>
+    <div id="combo-result" class="combo-result" style="margin:0 auto;"></div>
+  </section>
+
+  <script>
+    import { randomHiragana, randomHiraganaString } from '../lib/hiragana';
+
+    interface BoxState {
+      length: number;
+      text: string;
+    }
+
+    const MIN_BOXES = 1;
+    const MAX_BOXES = 6;
+    const MIN_LEN = 1;
+    const MAX_LEN = 4;
+    const DEFAULT_LENGTHS = [3, 1, 4, 2, 4, 1];
+
+    const boxes: BoxState[] = DEFAULT_LENGTHS.slice(0, 3).map((length) => ({
+      length,
+      text: randomHiraganaString(length),
+    }));
+
+    const boxesContainer = document.getElementById('boxes-container') as HTMLElement;
+    const boxCountDisplay = document.getElementById('box-count-display') as HTMLElement;
+    const decreaseBoxBtn = document.getElementById('decrease-box-btn') as HTMLButtonElement;
+    const increaseBoxBtn = document.getElementById('increase-box-btn') as HTMLButtonElement;
+    const resultEl = document.getElementById('combo-result') as HTMLElement;
+
+    function updateResult() {
+      const combined = boxes.map((b) => b.text).join('');
+      resultEl.textContent = combined || '…';
+    }
+
+    function updateBoxCountControls() {
+      boxCountDisplay.textContent = String(boxes.length);
+      decreaseBoxBtn.disabled = boxes.length <= MIN_BOXES;
+      increaseBoxBtn.disabled = boxes.length >= MAX_BOXES;
+    }
+
+    function rollBox(index: number) {
+      const box = boxes[index];
+      const boxEl = boxesContainer.children[index] as HTMLElement;
+      if (!boxEl) return;
+      const tilesEl = boxEl.querySelector('.combo-box-tiles') as HTMLElement;
+      const genBtn = boxEl.querySelector('.js-gen-btn') as HTMLButtonElement;
+      const tiles = Array.from(tilesEl.children) as HTMLElement[];
+      if (tiles.length === 0) return;
+
+      genBtn.disabled = true;
+      tiles.forEach((tile) => {
+        tile.classList.remove('is-settled');
+        tile.classList.add('is-rolling');
+      });
+
+      const interval = setInterval(() => {
+        tiles.forEach((tile) => {
+          tile.textContent = randomHiragana();
+        });
+      }, 60);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        const newText = randomHiraganaString(box.length);
+        box.text = newText;
+        tiles.forEach((tile, i) => {
+          tile.classList.remove('is-rolling');
+          tile.textContent = newText[i];
+          tile.classList.add('is-settled');
+          tile.addEventListener(
+            'animationend',
+            () => tile.classList.remove('is-settled'),
+            { once: true }
+          );
+        });
+        genBtn.disabled = false;
+        updateResult();
+      }, 550);
+    }
+
+    function changeBoxLength(index: number, delta: number) {
+      const box = boxes[index];
+      const newLength = Math.min(MAX_LEN, Math.max(MIN_LEN, box.length + delta));
+      if (newLength === box.length) return;
+      box.length = newLength;
+      box.text = randomHiraganaString(newLength);
+      renderBoxes();
+    }
+
+    function changeBoxCount(delta: number) {
+      const newCount = Math.min(MAX_BOXES, Math.max(MIN_BOXES, boxes.length + delta));
+      if (newCount === boxes.length) return;
+      if (newCount > boxes.length) {
+        while (boxes.length < newCount) {
+          const length = DEFAULT_LENGTHS[boxes.length % DEFAULT_LENGTHS.length];
+          boxes.push({ length, text: randomHiraganaString(length) });
+        }
+      } else {
+        boxes.length = newCount;
+      }
+      renderBoxes();
+    }
+
+    function renderBoxes() {
+      boxesContainer.innerHTML = '';
+
+      boxes.forEach((box, index) => {
+        const boxEl = document.createElement('div');
+        boxEl.className = 'combo-box';
+
+        const lengthControl = document.createElement('div');
+        lengthControl.style.display = 'flex';
+        lengthControl.style.alignItems = 'center';
+        lengthControl.style.gap = '0.4rem';
+
+        const decLenBtn = document.createElement('button');
+        decLenBtn.type = 'button';
+        decLenBtn.className = 'icon-btn';
+        decLenBtn.textContent = '−';
+        decLenBtn.disabled = box.length <= MIN_LEN;
+        decLenBtn.addEventListener('click', () => changeBoxLength(index, -1));
+
+        const lenLabel = document.createElement('span');
+        lenLabel.style.fontWeight = '700';
+        lenLabel.style.fontSize = '0.8rem';
+        lenLabel.style.color = '#9ca3af';
+        lenLabel.style.minWidth = '3.2rem';
+        lenLabel.style.textAlign = 'center';
+        lenLabel.textContent = `${box.length}文字`;
+
+        const incLenBtn = document.createElement('button');
+        incLenBtn.type = 'button';
+        incLenBtn.className = 'icon-btn';
+        incLenBtn.textContent = '＋';
+        incLenBtn.disabled = box.length >= MAX_LEN;
+        incLenBtn.addEventListener('click', () => changeBoxLength(index, 1));
+
+        lengthControl.append(decLenBtn, lenLabel, incLenBtn);
+
+        const tilesEl = document.createElement('div');
+        tilesEl.className = 'combo-box-tiles';
+        for (const ch of box.text) {
+          const tile = document.createElement('div');
+          tile.className = 'hiragana-tile';
+          tile.style.width = 'clamp(2.5rem, 8vw, 3.5rem)';
+          tile.style.height = 'clamp(2.5rem, 8vw, 3.5rem)';
+          tile.style.fontSize = 'clamp(1.1rem, 4vw, 1.6rem)';
+          tile.textContent = ch;
+          tilesEl.appendChild(tile);
+        }
+
+        const genBtn = document.createElement('button');
+        genBtn.type = 'button';
+        genBtn.className = 'btn-outline js-gen-btn';
+        genBtn.style.padding = '0.4rem 1.25rem';
+        genBtn.style.fontSize = '0.8rem';
+        genBtn.textContent = `箱${index + 1}を生成`;
+        genBtn.addEventListener('click', () => rollBox(index));
+
+        boxEl.append(lengthControl, tilesEl, genBtn);
+        boxesContainer.appendChild(boxEl);
+      });
+
+      updateBoxCountControls();
+      updateResult();
+    }
+
+    decreaseBoxBtn.addEventListener('click', () => changeBoxCount(-1));
+    increaseBoxBtn.addEventListener('click', () => changeBoxCount(1));
+
+    renderBoxes();
+  </script>
+</BaseLayout>

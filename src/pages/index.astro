@@ -29,22 +29,41 @@ export const prerender = true;
     <!-- Content -->
     <div style="position:relative; z-index:1; text-align:center; padding:2rem 1.5rem; max-width:900px;">
       <h1 style="font-size:clamp(2.5rem, 8vw, 6rem); font-weight:900; letter-spacing:-0.02em; line-height:1.05; margin-bottom:1rem; color:#fff;">
-        MY<br /><span style="color:#f97316;">PORTFOLIO</span>
+        NSK<br /><span style="color:#f97316;">Tools</span>
       </h1>
       <p style="font-size:clamp(0.95rem, 2.5vw, 1.25rem); font-weight:700; color:#e5e7eb; line-height:1.6; max-width:600px; margin:0 auto 2.5rem;">
         Cloudflare Pagesベースの<br />
         小型ツール開発・公開用環境
       </p>
 
-      <div style="display:flex; flex-wrap:wrap; gap:1rem; justify-content:center;">
-        <div
-          style="background:rgba(255,255,255,0.05); border:1px solid #2a2a2a; border-radius:8px; padding:2rem; width:100%; max-width:400px;"
+      <div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center;">
+        <a
+          href="/hiragana-gacha"
+          class="card"
+          style="text-align:left; width:100%; max-width:320px; transition:border-color 0.2s ease, transform 0.2s ease; text-decoration:none;"
         >
-          <h2 style="color:#fff; font-size:1.25rem; font-weight:700; margin-bottom:1rem;">Tools</h2>
-          <p style="color:#9ca3af; font-size:0.9rem;">
-            ここに作成したツールが並びます。
+          <h2 style="color:#fff; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">
+            ひらがなガチャ
+          </h2>
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem;">
+            ボタンを押すたびに2〜4文字のひらがながランダムに生成される、シンプルなガチャツール。
           </p>
-        </div>
+          <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+        </a>
+
+        <a
+          href="/hiragana-combo"
+          class="card"
+          style="text-align:left; width:100%; max-width:320px; transition:border-color 0.2s ease, transform 0.2s ease; text-decoration:none;"
+        >
+          <h2 style="color:#fff; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">
+            文字コンボ
+          </h2>
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem;">
+            長さと数を自由に選べるひらがなの箱を並べて、思いがけない言葉が生まれるか試すツール。
+          </p>
+          <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+        </a>
       </div>
     </div>
   </section>

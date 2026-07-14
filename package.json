@@ -9,6 +9,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "stop": "astro dev stop",
     "astro": "astro",
     "generate-types": "wrangler types",
     "cf:login": "wrangler login",

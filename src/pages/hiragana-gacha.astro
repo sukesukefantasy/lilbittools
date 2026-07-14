@@ -1,0 +1,113 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="ひらがなガチャ"
+  description="ボタンを押すたびに2〜4文字のひらがながランダムに生成される、シンプルなガチャツール。"
+>
+  <section class="container" style="padding:3rem 1.5rem 4rem; max-width:720px; margin:0 auto;">
+    <p class="section-subtitle" style="text-align:center;">RANDOM HIRAGANA</p>
+    <h1 class="section-title" style="text-align:center; margin-bottom:0.75rem;">
+      ひらがなガチャ
+    </h1>
+    <p style="text-align:center; color:#9ca3af; font-size:0.95rem; line-height:1.7; margin-bottom:2.5rem;">
+      ボタンを押すたびに、ひらがなが1文字ずつランダムに生成されます。<br />
+      文字数は2〜4文字から選べます。濁点・小さい文字も含む約80文字から抽選。
+    </p>
+
+    <!-- 文字数セレクター -->
+    <div style="display:flex; justify-content:center; gap:0.5rem; margin-bottom:2rem;">
+      <button type="button" class="toggle-btn js-length-btn" data-length="2">2文字</button>
+      <button type="button" class="toggle-btn js-length-btn is-active" data-length="3">3文字</button>
+      <button type="button" class="toggle-btn js-length-btn" data-length="4">4文字</button>
+    </div>
+
+    <!-- タイル表示エリア -->
+    <div
+      id="tiles"
+      class="combo-box-tiles"
+      style="margin-bottom:2.5rem; min-height:5.5rem; align-items:center;"
+    >
+    </div>
+
+    <!-- ガチャボタン -->
+    <div style="display:flex; justify-content:center;">
+      <button id="roll-btn" type="button" class="btn-primary" style="min-width:220px;">
+        ガチャを回す
+      </button>
+    </div>
+  </section>
+
+  <script>
+    import { randomHiragana } from '../lib/hiragana';
+
+    let currentLength = 3;
+
+    const tilesContainer = document.getElementById('tiles') as HTMLElement;
+    const lengthButtons = document.querySelectorAll<HTMLButtonElement>('.js-length-btn');
+    const rollButton = document.getElementById('roll-btn') as HTMLButtonElement;
+
+    function renderTiles(length: number) {
+      tilesContainer.innerHTML = '';
+      for (let i = 0; i < length; i++) {
+        const tile = document.createElement('div');
+        tile.className = 'hiragana-tile';
+        tile.textContent = '？';
+        tilesContainer.appendChild(tile);
+      }
+    }
+
+    function setLength(length: number) {
+      currentLength = length;
+      lengthButtons.forEach((btn) => {
+        btn.classList.toggle('is-active', Number(btn.dataset.length) === length);
+      });
+      renderTiles(length);
+    }
+
+    lengthButtons.forEach((btn) => {
+      btn.addEventListener('click', () => setLength(Number(btn.dataset.length)));
+    });
+
+    function rollTiles() {
+      const tiles = Array.from(tilesContainer.children) as HTMLElement[];
+      if (tiles.length === 0) return;
+
+      rollButton.disabled = true;
+      tiles.forEach((tile) => {
+        tile.classList.remove('is-settled');
+        tile.classList.add('is-rolling');
+      });
+
+      const rollDuration = 550;
+      const intervalMs = 60;
+      const interval = setInterval(() => {
+        tiles.forEach((tile) => {
+          tile.textContent = randomHiragana();
+        });
+      }, intervalMs);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        tiles.forEach((tile) => {
+          tile.classList.remove('is-rolling');
+          tile.textContent = randomHiragana();
+          tile.classList.add('is-settled');
+          tile.addEventListener(
+            'animationend',
+            () => tile.classList.remove('is-settled'),
+            { once: true }
+          );
+        });
+        rollButton.disabled = false;
+      }, rollDuration);
+    }
+
+    rollButton.addEventListener('click', rollTiles);
+
+    renderTiles(currentLength);
+  </script>
+</BaseLayout>
