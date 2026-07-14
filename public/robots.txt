@@ -1,0 +1,5 @@
+﻿# クロール禁止（公開準備ができたら内容を変更する）
+# 公開時: User-agent: * / Allow: / / Sitemap: https://your-domain.com/sitemap.xml
+
+User-agent: *
+Disallow: /

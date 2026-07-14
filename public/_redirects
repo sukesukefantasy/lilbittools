@@ -1,0 +1,5 @@
+﻿# Cloudflare Pages リダイレクト設定
+# https://developers.cloudflare.com/pages/configuration/redirects/
+
+# SPA フォールバック（必要な場合のみ有効化）
+# /* /index.html 200

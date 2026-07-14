@@ -1,0 +1,8 @@
+﻿# Cloudflare Pages セキュリティヘッダー
+# 公開準備ができたら X-Robots-Tag の行を削除する
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
