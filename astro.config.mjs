@@ -6,7 +6,7 @@ import cloudflare from '@astrojs/cloudflare';
 // https://astro.build/config
 // Deploying to Cloudflare Pages
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://lilbittools.pages.dev',
   output: 'server',
   vite: {
     plugins: [tailwindcss()],
