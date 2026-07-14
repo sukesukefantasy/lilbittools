@@ -1,4 +1,4 @@
-﻿# lilbittools
+# lilbittools
 
 Cloudflare Pages (Astro) で構築された、自作の小型ツールを公開・管理するためのプロジェクトです。
 
