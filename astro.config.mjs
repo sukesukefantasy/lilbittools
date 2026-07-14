@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import cloudflare from '@astrojs/cloudflare';
 
 // https://astro.build/config
+// Deploying to Cloudflare Pages
 export default defineConfig({
   site: 'https://example.com',
   output: 'server',
