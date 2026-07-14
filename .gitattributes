@@ -1,0 +1,10 @@
+# Enforce LF line endings and UTF-8 (no BOM) encoding
+* text=auto eol=lf
+*.json text eol=lf
+*.astro text eol=lf
+*.ts text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.css text eol=lf
+*.md text eol=lf
+*.html text eol=lf
