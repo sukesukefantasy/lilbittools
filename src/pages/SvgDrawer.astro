@@ -1,0 +1,585 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="SVGパス変換"
+  description="キャンバスに描いた線を、リアルタイムでSVGパスコードへ変換する描画ツール。"
+>
+  <section class="drawer">
+    <p class="section-subtitle" style="text-align:center;">
+      HANDWRITING TO SVG
+    </p>
+    <h1 class="section-title" style="text-align:center; margin-bottom:0.75rem;">
+      SVGパス変換
+    </h1>
+    <p class="drawer-lead">
+      キャンバスに線を描くと、右側にSVGパスがリアルタイムで生成されます。<br />
+      Ctrl+Z で1つ戻す、Ctrl+Y または Ctrl+Shift+Z でやり直します。
+    </p>
+
+    <div class="editor-layout">
+      <div class="panel">
+        <div class="panel-title">
+          <span>キャンバス</span>
+          <button class="btn btn-secondary" id="clearBtn" type="button"
+            >すべてクリア</button
+          >
+        </div>
+
+        <div class="toolbar">
+          <div class="tool-group">
+            <label>色:</label>
+            <button
+              type="button"
+              class="color-dot active"
+              style="background-color: #000000;"
+              data-color="#000000"
+              aria-label="黒"></button>
+            <button
+              type="button"
+              class="color-dot"
+              style="background-color: #ff3b30;"
+              data-color="#ff3b30"
+              aria-label="赤"></button>
+            <button
+              type="button"
+              class="color-dot"
+              style="background-color: #34c759;"
+              data-color="#34c759"
+              aria-label="緑"></button>
+            <button
+              type="button"
+              class="color-dot"
+              style="background-color: #0071e3;"
+              data-color="#0071e3"
+              aria-label="青"></button>
+            <input
+              type="color"
+              id="customColor"
+              value="#ff9500"
+              title="カスタムカラーを選択"
+            />
+          </div>
+
+          <div class="tool-group">
+            <label>太さ:</label>
+            <input type="range" id="lineWidth" min="1" max="20" value="4" />
+            <span id="widthVal">4px</span>
+          </div>
+
+          <div class="tool-group">
+            <button
+              class="btn btn-secondary"
+              id="undoBtn"
+              type="button"
+              title="Ctrl+Z"
+              disabled
+            >戻す</button>
+            <button
+              class="btn btn-secondary"
+              id="redoBtn"
+              type="button"
+              title="Ctrl+Y / Ctrl+Shift+Z"
+              disabled
+            >進む</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrap" id="canvasWrap">
+          <canvas id="paintCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">
+          <span>変換されたSVGコード</span>
+          <button class="btn" id="copyBtn" type="button">コードをコピー</button>
+        </div>
+        <textarea
+          id="svgOutput"
+          readonly
+          placeholder="キャンバスに描画すると、ここにSVGのパスデータがリアルタイムで生成されます..."
+        ></textarea>
+        <div class="controls">
+          <button class="btn" id="downloadSvgBtn" type="button">
+            .svg ファイルとしてダウンロード
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  interface Point {
+    x: number;
+    y: number;
+  }
+
+  interface PathData {
+    color: string;
+    width: number;
+    points: Point[];
+  }
+
+  const canvas = document.getElementById(
+    "paintCanvas",
+  ) as HTMLCanvasElement | null;
+  const canvasWrap = document.getElementById("canvasWrap");
+  const ctx = canvas?.getContext("2d");
+  const svgOutput = document.getElementById(
+    "svgOutput",
+  ) as HTMLTextAreaElement | null;
+  const clearBtn = document.getElementById("clearBtn");
+  const copyBtn = document.getElementById("copyBtn");
+  const downloadSvgBtn = document.getElementById("downloadSvgBtn");
+  const lineWidthInput = document.getElementById(
+    "lineWidth",
+  ) as HTMLInputElement | null;
+  const widthVal = document.getElementById("widthVal");
+  const customColorInput = document.getElementById(
+    "customColor",
+  ) as HTMLInputElement | null;
+  const colorDots = document.querySelectorAll<HTMLButtonElement>(".color-dot");
+  const undoBtn = document.getElementById("undoBtn") as HTMLButtonElement | null;
+  const redoBtn = document.getElementById("redoBtn") as HTMLButtonElement | null;
+
+  if (
+    canvas &&
+    canvasWrap &&
+    ctx &&
+    svgOutput &&
+    lineWidthInput &&
+    customColorInput &&
+    widthVal
+  ) {
+    let isDrawing = false;
+    let currentColor = "#000000";
+    let currentWidth = 4;
+    let logicalWidth = 1;
+    let logicalHeight = 1;
+    let allPaths: PathData[] = [];
+    let currentPathPoints: Point[] = [];
+    let history: PathData[][] = [[]];
+    let historyIndex = 0;
+
+    function applyStrokeStyle(color: string, width: number) {
+      ctx!.strokeStyle = color;
+      ctx!.lineWidth = width;
+      ctx!.lineCap = "round";
+      ctx!.lineJoin = "round";
+    }
+
+    function clonePaths(paths: PathData[]): PathData[] {
+      return paths.map((path) => ({
+        color: path.color,
+        width: path.width,
+        points: path.points.map((point) => ({ x: point.x, y: point.y })),
+      }));
+    }
+
+    function updateHistoryButtons() {
+      if (undoBtn) undoBtn.disabled = historyIndex <= 0;
+      if (redoBtn) redoBtn.disabled = historyIndex >= history.length - 1;
+    }
+
+    function commitHistory() {
+      history = history.slice(0, historyIndex + 1);
+      history.push(clonePaths(allPaths));
+      historyIndex = history.length - 1;
+      updateHistoryButtons();
+    }
+
+    function applyHistory() {
+      allPaths = clonePaths(history[historyIndex]);
+      redraw();
+      updateSVGCode();
+      updateHistoryButtons();
+    }
+
+    function undo() {
+      if (isDrawing || historyIndex <= 0) return;
+      historyIndex -= 1;
+      applyHistory();
+    }
+
+    function redo() {
+      if (isDrawing || historyIndex >= history.length - 1) return;
+      historyIndex += 1;
+      applyHistory();
+    }
+
+    function resizeCanvas() {
+      const rect = canvasWrap!.getBoundingClientRect();
+      const cssWidth = Math.max(1, Math.round(rect.width));
+      const cssHeight = Math.max(1, Math.round(rect.height));
+      const dpr = window.devicePixelRatio || 1;
+
+      logicalWidth = cssWidth;
+      logicalHeight = cssHeight;
+      canvas!.width = Math.round(cssWidth * dpr);
+      canvas!.height = Math.round(cssHeight * dpr);
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      redraw();
+      updateSVGCode();
+    }
+
+    function getCoordinates(e: PointerEvent): Point {
+      const rect = canvas!.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * logicalWidth;
+      const y = ((e.clientY - rect.top) / rect.height) * logicalHeight;
+      return {
+        x: Math.round(Math.min(Math.max(x, 0), logicalWidth)),
+        y: Math.round(Math.min(Math.max(y, 0), logicalHeight)),
+      };
+    }
+
+    function startDrawing(e: PointerEvent) {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      e.preventDefault();
+      canvas!.setPointerCapture(e.pointerId);
+      isDrawing = true;
+
+      const coords = getCoordinates(e);
+      currentPathPoints = [coords];
+      allPaths.push({
+        color: currentColor,
+        width: currentWidth,
+        points: currentPathPoints,
+      });
+
+      ctx!.beginPath();
+      applyStrokeStyle(currentColor, currentWidth);
+      ctx!.moveTo(coords.x, coords.y);
+    }
+
+    function draw(e: PointerEvent) {
+      if (!isDrawing) return;
+      e.preventDefault();
+
+      const coords = getCoordinates(e);
+      currentPathPoints.push(coords);
+      ctx!.lineTo(coords.x, coords.y);
+      ctx!.stroke();
+      ctx!.beginPath();
+      ctx!.moveTo(coords.x, coords.y);
+      updateSVGCode();
+    }
+
+    function stopDrawing(e: PointerEvent) {
+      if (!isDrawing) return;
+      isDrawing = false;
+      if (canvas!.hasPointerCapture(e.pointerId)) {
+        canvas!.releasePointerCapture(e.pointerId);
+      }
+      commitHistory();
+      updateSVGCode();
+    }
+
+    function redraw() {
+      ctx!.clearRect(0, 0, logicalWidth, logicalHeight);
+
+      allPaths.forEach((path) => {
+        if (path.points.length < 1) return;
+        ctx!.beginPath();
+        applyStrokeStyle(path.color, path.width);
+        ctx!.moveTo(path.points[0].x, path.points[0].y);
+        for (let i = 1; i < path.points.length; i++) {
+          ctx!.lineTo(path.points[i].x, path.points[i].y);
+        }
+        ctx!.stroke();
+      });
+    }
+
+    function generateSVGString(): string {
+      if (allPaths.length === 0) return "";
+
+      let pathData = "";
+      allPaths.forEach((path) => {
+        if (path.points.length < 1) return;
+        pathData += `  <path d="M ${path.points[0].x} ${path.points[0].y}`;
+        for (let i = 1; i < path.points.length; i++) {
+          pathData += ` L ${path.points[i].x} ${path.points[i].y}`;
+        }
+        pathData += `" fill="none" stroke="${path.color}" stroke-width="${path.width}" stroke-linecap="round" stroke-linejoin="round" />\n`;
+      });
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${logicalWidth} ${logicalHeight}" width="${logicalWidth}" height="${logicalHeight}">\n${pathData}</svg>`;
+    }
+
+    function updateSVGCode() {
+      svgOutput!.value = generateSVGString();
+    }
+
+    colorDots.forEach((dot) => {
+      dot.addEventListener("click", () => {
+        colorDots.forEach((d) => d.classList.remove("active"));
+        dot.classList.add("active");
+        currentColor = dot.getAttribute("data-color") || "#000000";
+      });
+    });
+
+    customColorInput.addEventListener("input", (e) => {
+      colorDots.forEach((d) => d.classList.remove("active"));
+      currentColor = (e.target as HTMLInputElement).value;
+    });
+
+    lineWidthInput.addEventListener("input", (e) => {
+      currentWidth = parseInt((e.target as HTMLInputElement).value, 10);
+      widthVal!.innerText = currentWidth + "px";
+    });
+
+    canvas.addEventListener("pointerdown", startDrawing);
+    canvas.addEventListener("pointermove", draw);
+    canvas.addEventListener("pointerup", stopDrawing);
+    canvas.addEventListener("pointercancel", stopDrawing);
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    undoBtn?.addEventListener("click", undo);
+    redoBtn?.addEventListener("click", redo);
+
+    window.addEventListener("keydown", (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const key = e.code;
+      if (key === "KeyZ" && e.shiftKey) {
+        e.preventDefault();
+        redo();
+        return;
+      }
+      if (key === "KeyZ") {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      if (key === "KeyY") {
+        e.preventDefault();
+        redo();
+      }
+    });
+
+    clearBtn?.addEventListener("click", () => {
+      if (allPaths.length === 0) return;
+      allPaths = [];
+      ctx!.clearRect(0, 0, logicalWidth, logicalHeight);
+      commitHistory();
+      updateSVGCode();
+    });
+
+    copyBtn?.addEventListener("click", () => {
+      if (!svgOutput!.value) return;
+      navigator.clipboard.writeText(svgOutput!.value).then(() => {
+        const originalText = copyBtn!.innerText;
+        copyBtn!.innerText = "コピーしました！";
+        setTimeout(() => (copyBtn!.innerText = originalText), 2000);
+      });
+    });
+
+    downloadSvgBtn?.addEventListener("click", () => {
+      const svgContent = generateSVGString();
+      if (!svgContent) {
+        alert("キャンバスに何か描いてからダウンロードしてください。");
+        return;
+      }
+      const blob = new Blob([svgContent], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "colorful-sketch.svg";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    });
+
+    const observer = new ResizeObserver(() => resizeCanvas());
+    observer.observe(canvasWrap);
+    resizeCanvas();
+    updateHistoryButtons();
+  }
+</script>
+
+<style>
+  .drawer {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 4rem;
+  }
+
+  .drawer-lead {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+
+  .editor-layout {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 850px) {
+    .editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .panel-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    color: #fff;
+  }
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: var(--color-surface-2);
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    align-items: center;
+  }
+
+  .tool-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tool-group label,
+  #widthVal {
+    font-size: 13px;
+    font-weight: 600;
+    color: #9ca3af;
+    min-width: 25px;
+  }
+
+  .color-dot {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    padding: 0;
+    transition: transform 0.1s;
+  }
+
+  .color-dot.active {
+    border-color: var(--color-brand);
+    transform: scale(1.1);
+  }
+
+  input[type="color"] {
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+  }
+
+  input[type="range"] {
+    width: 80px;
+  }
+
+  .canvas-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 280px;
+    border: 2px dashed #3f3f46;
+    border-radius: 8px;
+    background-color: #fafafa;
+    overflow: hidden;
+  }
+
+  canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  .btn {
+    background-color: var(--color-brand);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn:hover {
+    background-color: var(--color-brand-dark);
+  }
+
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background-color: #3f3f46;
+  }
+
+  .btn-secondary:hover {
+    background-color: #52525b;
+  }
+
+  textarea {
+    width: 100%;
+    flex-grow: 1;
+    min-height: 320px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    padding: 10px;
+    box-sizing: border-box;
+    resize: none;
+    background-color: var(--color-surface-2);
+    color: #e5e7eb;
+  }
+
+  .controls {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .controls .btn {
+    width: 100%;
+  }
+</style>
