@@ -27,7 +27,7 @@ export const prerender = true;
     </div>
 
     <!-- Content -->
-    <div style="position:relative; z-index:1; text-align:center; padding:2rem 1.5rem; max-width:900px;">
+    <div style="position:relative; z-index:1; text-align:center; padding:2rem 1.5rem; max-width:1000px;">
       <h1 style="font-size:clamp(2.5rem, 8vw, 6rem); font-weight:900; letter-spacing:-0.02em; line-height:1.05; margin-bottom:1rem; color:#fff;">
         NSK Tools<br /><span style="color:#D2BEA4;">Repository</span>
       </h1>
@@ -38,60 +38,123 @@ export const prerender = true;
       <div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center;">
         <a
           href="/hiragana-gacha"
-          class="card"
-          style="text-align:left; width:100%; max-width:320px; transition:border-color 0.2s ease, transform 0.2s ease; text-decoration:none;"
+          class="card tool-card"
+          style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
         >
           <h2 style="color:#fff; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">
             ひらがなガチャ
           </h2>
-          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem;">
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem; flex-grow:1;">
             ボタンを押すたびに2〜4文字のひらがながランダムに生成される、シンプルなガチャツール。
           </p>
-          <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+          <div>
+            <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+          </div>
         </a>
 
         <a
           href="/hiragana-combo"
-          class="card"
-          style="text-align:left; width:100%; max-width:320px; transition:border-color 0.2s ease, transform 0.2s ease; text-decoration:none;"
+          class="card tool-card"
+          style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
         >
           <h2 style="color:#fff; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">
             文字コンボ
           </h2>
-          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem;">
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem; flex-grow:1;">
             長さと数を自由に選べるひらがなの箱を並べて、思いがけない言葉が生まれるか試すツール。
           </p>
-          <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+          <div>
+            <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+          </div>
         </a>
 
         <a
           href="/SvgDrawer"
-          class="card"
-          style="text-align:left; width:100%; max-width:320px; transition:border-color 0.2s ease, transform 0.2s ease; text-decoration:none;"
+          class="card tool-card"
+          style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
         >
           <h2 style="color:#fff; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">
             SVGパス変換
           </h2>
-          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem;">
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem; flex-grow:1;">
             キャンバスに描いた線を、リアルタイムでSVGパスコードへ変換する描画ツール。
           </p>
-          <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">使ってみる</span>
+          <div>
+            <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">使ってみる</span>
+          </div>
         </a>
 
         <a
           href="/bypass-puzzle"
-          class="card"
-          style="text-align:left; width:100%; max-width:320px; transition:border-color 0.2s ease, transform 0.2s ease; text-decoration:none;"
+          class="card tool-card"
+          style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
         >
           <h2 style="color:#fff; font-size:1.15rem; font-weight:700; margin-bottom:0.5rem;">
             回路バイパスパズル
           </h2>
-          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem;">
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem; flex-grow:1;">
             パネルを回転させて回路を繋ぐパズル。バッテリーからエンジンまでエネルギーを届けよう。
           </p>
-          <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+          <div>
+            <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">遊んでみる</span>
+          </div>
+        </a>
+
+        <a
+          href="https://parkour-all-realtime-location.web.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="card tool-card"
+          style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
+        >
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem; margin-bottom:0.5rem;">
+            <h2 style="color:#fff; font-size:1.15rem; font-weight:700; line-height:1.35;">
+              Parkour All Real-time Location
+            </h2>
+            <span
+              style="flex-shrink:0; font-size:0.7rem; font-weight:700; padding:0.15rem 0.45rem; border-radius:4px; background:rgba(210,190,164,0.15); color:#D2BEA4; border:1px solid rgba(210,190,164,0.3); white-space:nowrap;"
+            >
+              外部 ↗
+            </span>
+          </div>
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem; flex-grow:1;">
+            パルクール等の位置情報をリアルタイムで共有・確認できるWebツール。
+          </p>
+          <div>
+            <span
+              class="btn-primary"
+              style="padding:0.5rem 1.25rem; font-size:0.85rem; display:inline-flex; align-items:center; gap:0.35rem;"
+            >
+              アプリを開く
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+            </span>
+          </div>
         </a>
       </div>
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  .tool-card {
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .tool-card:hover {
+    border-color: #D2BEA4;
+    transform: translateY(-2px);
+  }
+</style>
