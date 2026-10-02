@@ -15,7 +15,6 @@ import {
   resolveFilename,
   triggerDownload,
 } from '../../lib/timesheet/excelGenerator';
-import { exportTimesheetPdf } from '../../lib/timesheet/pdfGenerator';
 import { BASE_SOURCE_FIELDS } from './TemplateMapper';
 
 interface Props {
@@ -33,7 +32,6 @@ export const PreviewExport: React.FC<Props> = ({
 }) => {
   const [isExportingExcel, setIsExportingExcel] = useState(false);
   const [isExportingCsv, setIsExportingCsv] = useState(false);
-  const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   // サマリー計算
   const totalSeconds = rows.reduce((acc, r) => acc + r.durationSeconds, 0);
@@ -79,18 +77,6 @@ export const PreviewExport: React.FC<Props> = ({
       alert(`CSVエクスポートエラー: ${e.message || String(e)}`);
     } finally {
       setIsExportingCsv(false);
-    }
-  };
-
-  const handleExportPdf = async () => {
-    if (rows.length === 0) return;
-    setIsExportingPdf(true);
-    try {
-      await exportTimesheetPdf(rows, preset);
-    } catch (e: any) {
-      alert(`PDFエクスポートエラー: ${e.message || String(e)}`);
-    } finally {
-      setIsExportingPdf(false);
     }
   };
 
@@ -158,7 +144,7 @@ export const PreviewExport: React.FC<Props> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={handleExportCsv}
@@ -167,17 +153,6 @@ export const PreviewExport: React.FC<Props> = ({
           >
             <FileText className="w-4 h-4 text-gray-400" />
             CSV出力
-          </button>
-
-          <button
-            type="button"
-            onClick={handleExportPdf}
-            disabled={rows.length === 0 || isExportingPdf}
-            className="inline-flex items-center gap-1.5 bg-[#222] hover:bg-border text-white border border-[#333] hover:border-brand px-3.5 py-2 rounded text-xs font-bold transition disabled:opacity-40 cursor-pointer"
-            title="A4用紙レイアウトの帳票PDFを生成"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-brand" />
-            {isExportingPdf ? 'PDF生成中...' : 'PDF出力 (.pdf)'}
           </button>
 
           <button
