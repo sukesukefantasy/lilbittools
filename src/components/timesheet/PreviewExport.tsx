@@ -225,15 +225,14 @@ export const PreviewExport: React.FC<Props> = ({
                         (customField?.type === 'multiply_duration' || customField?.type === 'formula') && typeof val === 'number'
                           ? `¥${val.toLocaleString()}`
                           : mapping.sourceField === 'duration' && preset.timeFormat === 'decimal' && typeof val === 'number'
-                          ? `${val.toFixed(2)}h`
-                          : String(val ?? '');
+                            ? `${val.toFixed(2)}h`
+                            : String(val ?? '');
 
                       return (
                         <td
                           key={colIdx}
-                          className={`py-2 px-3 whitespace-nowrap font-mono text-gray-300 ${
-                            isRight ? 'text-right' : ''
-                          }`}
+                          className={`py-2 px-3 whitespace-nowrap font-mono text-gray-300 ${isRight ? 'text-right' : ''
+                            }`}
                         >
                           {formattedVal || '-'}
                         </td>
