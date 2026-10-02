@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { TimesheetApp } from '../components/timesheet/TimesheetApp';
+
+export const prerender = true;
+---
+
+<BaseLayout
+  title="勤務表ジェネレーターfrom Toggl"
+  description="Toggl Trackの作業ログCSVを読み込み、集計・Excelテンプレートへのデータ流し込み・ファイル生成を行うWebツール。"
+>
+  <section style="min-height:85vh; padding: 2.5rem 0 4rem; background: #0a0a0a;">
+    <div style="max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; text-align: center;">
+      <p class="section-subtitle">
+        TOGGL CSV TO TIMESHEET & INVOICE
+      </p>
+      <h1 class="section-title" style="margin-bottom: 0.75rem; color: #fff;">
+        勤務表ジェネレーターfrom Toggl
+      </h1>
+      <p style="color: #9ca3af; font-size: 0.95rem; line-height: 1.6; max-width: 650px; margin: 0 auto 1.5rem;">
+        Toggl Trackなどの作業ログCSVをドラッグ＆ドロップするだけで、日付別・タスク別に集計。<br />
+        既存のExcelテンプレートの指定セルに流し込んで、勤務表や請求書を素早く生成・出力します。
+      </p>
+    </div>
+
+    <TimesheetApp client:only="react" />
+  </section>
+</BaseLayout>

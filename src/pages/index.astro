@@ -37,6 +37,29 @@ export const prerender = true;
 
       <div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center;">
         <a
+          href="/toggle-timesheet-generator"
+          class="card tool-card"
+          style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
+        >
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:0.5rem; margin-bottom:0.5rem;">
+            <h2 style="color:#fff; font-size:1.15rem; font-weight:700; line-height:1.35;">
+              勤務表ジェネレーターfrom Toggl
+            </h2>
+            <span
+              style="flex-shrink:0; font-size:0.7rem; font-weight:700; padding:0.15rem 0.45rem; border-radius:4px; background:rgba(210,190,164,0.15); color:#D2BEA4; border:1px solid rgba(210,190,164,0.3); white-space:nowrap;"
+            >
+              NEW
+            </span>
+          </div>
+          <p style="color:#9ca3af; font-size:0.85rem; line-height:1.6; margin-bottom:1.25rem; flex-grow:1;">
+            Toggl TrackのCSVログから作業時間を自動集計し、Excelテンプレートに流し込んで勤務表や請求書を出力するツール。
+          </p>
+          <div>
+            <span class="btn-primary" style="padding:0.5rem 1.25rem; font-size:0.85rem;">使ってみる</span>
+          </div>
+        </a>
+
+        <a
           href="/hiragana-gacha"
           class="card tool-card"
           style="text-align:left; width:100%; max-width:320px; text-decoration:none; display:flex; flex-direction:column;"
