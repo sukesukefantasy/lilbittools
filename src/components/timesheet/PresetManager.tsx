@@ -250,7 +250,7 @@ export const PresetManager: React.FC<Props> = ({
                       )}
                     </div>
                     <div className="text-[11px] text-[#888] mt-0.5">
-                      集計: {preset.aggregationUnit} / 列数: {preset.columnMappings.length}列 / カスタム: {preset.customColumns.length}個
+                      集計: {preset.aggregationUnit} / 開始セル: {preset.startCell || 'A2'} / 列数: {preset.columnMappings.length}列 / カスタム: {preset.customColumns.length}個
                     </div>
                   </div>
 

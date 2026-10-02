@@ -45,6 +45,33 @@ export const TASK_PRESET: PresetConfig = {
   filenamePattern: '{project}_{yyyymm}_請求書',
 };
 
+/**
+ * プリセット設定オブジェクトを安全に正規化・補完
+ */
+export function normalizePresetConfig(raw: any, fallbackId?: string): PresetConfig {
+  return {
+    id: typeof raw?.id === 'string' && raw.id ? raw.id : (fallbackId || `preset_${Date.now()}`),
+    name: typeof raw?.name === 'string' && raw.name ? raw.name : 'カスタムプリセット',
+    requiredColumns: Array.isArray(raw?.requiredColumns) && raw.requiredColumns.length > 0
+      ? raw.requiredColumns
+      : DEFAULT_PRESET.requiredColumns,
+    aggregationUnit: ['raw', 'date', 'task', 'project'].includes(raw?.aggregationUnit)
+      ? raw.aggregationUnit
+      : 'date',
+    timeFormat: raw?.timeFormat === 'hhmm' ? 'hhmm' : 'decimal',
+    customColumns: Array.isArray(raw?.customColumns) ? raw.customColumns : [],
+    startCell: typeof raw?.startCell === 'string' && raw.startCell.trim()
+      ? raw.startCell.trim().toUpperCase()
+      : 'A2',
+    columnMappings: Array.isArray(raw?.columnMappings) && raw.columnMappings.length > 0
+      ? raw.columnMappings
+      : DEFAULT_PRESET.columnMappings,
+    filenamePattern: typeof raw?.filenamePattern === 'string' && raw.filenamePattern.trim()
+      ? raw.filenamePattern.trim()
+      : '{project}_{yyyymm}_勤務表',
+  };
+}
+
 export function loadPresets(): PresetConfig[] {
   if (typeof window === 'undefined') return [DEFAULT_PRESET, TASK_PRESET];
   try {
@@ -52,7 +79,7 @@ export function loadPresets(): PresetConfig[] {
     if (!data) return [DEFAULT_PRESET, TASK_PRESET];
     const parsed = JSON.parse(data);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed;
+      return parsed.map((p, idx) => normalizePresetConfig(p, `preset_${idx}`));
     }
   } catch (e) {
     console.error('Failed to load presets from localStorage', e);
@@ -63,7 +90,8 @@ export function loadPresets(): PresetConfig[] {
 export function savePresets(presets: PresetConfig[]): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(presets));
+    const normalized = presets.map((p) => normalizePresetConfig(p));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
   } catch (e) {
     console.error('Failed to save presets to localStorage', e);
   }
@@ -91,9 +119,10 @@ export function setActivePresetId(id: string): void {
  * プリセット設定をJSONファイルとしてダウンロード
  */
 export function downloadPresetConfigJson(preset: PresetConfig): void {
-  const jsonStr = JSON.stringify(preset, null, 2);
+  const normalized = normalizePresetConfig(preset);
+  const jsonStr = JSON.stringify(normalized, null, 2);
   const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8;' });
-  const filename = `timesheet-config_${preset.name.replace(/\s+/g, '_')}.json`;
+  const filename = `timesheet-config_${normalized.name.replace(/\s+/g, '_')}.json`;
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -114,11 +143,11 @@ export function parseUploadedPresetJson(content: string): PresetConfig | PresetC
     // 配列の場合
     if (Array.isArray(data)) {
       const valid = data.filter((item) => item && typeof item === 'object' && item.name && Array.isArray(item.columnMappings));
-      return valid.length > 0 ? (valid as PresetConfig[]) : null;
+      return valid.length > 0 ? (valid.map((item, idx) => normalizePresetConfig(item, `imported_${Date.now()}_${idx}`)) as PresetConfig[]) : null;
     }
     // 単一オブジェクトの場合
     if (data && typeof data === 'object' && data.name && Array.isArray(data.columnMappings)) {
-      return data as PresetConfig;
+      return normalizePresetConfig(data, `imported_${Date.now()}`);
     }
     return null;
   } catch {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { ColumnMapping, PresetConfig } from '../../lib/timesheet/types';
 import { FileSpreadsheet, Plus, Trash2, Upload, Check, GripVertical, ArrowDownUp } from 'lucide-react';
 import { columnNumberToLetter } from '../../lib/timesheet/excelGenerator';
@@ -33,6 +33,11 @@ export const TemplateMapper: React.FC<Props> = ({
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
+  // プリセット切り替えやインポート時に開始セル入力を同期
+  useEffect(() => {
+    setStartCellInput(preset.startCell || 'A2');
+  }, [preset.startCell, preset.id]);
+
   // カスタムカラムもマッピング候補に加える
   const availableFields = [
     ...BASE_SOURCE_FIELDS,
@@ -53,9 +58,19 @@ export const TemplateMapper: React.FC<Props> = ({
     }
   };
 
+  const handleStartCellChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setStartCellInput(val);
+    const clean = val.trim().toUpperCase();
+    if (/^[A-Z]+\d+$/.test(clean)) {
+      onUpdatePreset({ startCell: clean });
+    }
+  };
+
   const handleStartCellBlur = () => {
     const clean = startCellInput.trim().toUpperCase();
     if (/^[A-Z]+\d+$/.test(clean)) {
+      setStartCellInput(clean);
       onUpdatePreset({ startCell: clean });
     } else {
       setStartCellInput(preset.startCell || 'A2');
@@ -187,7 +202,7 @@ export const TemplateMapper: React.FC<Props> = ({
           <input
             type="text"
             value={startCellInput}
-            onChange={(e) => setStartCellInput(e.target.value)}
+            onChange={handleStartCellChange}
             onBlur={handleStartCellBlur}
             placeholder="A2"
             className="w-full bg-[#181818] text-white border border-[#333] rounded px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-brand"
